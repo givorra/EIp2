@@ -4,10 +4,11 @@
  *  Created on: 26 de abr. de 2016
  *      Author: gacel
  */
-/*
+
 #ifndef INDEXADORHASH_H_
 #define INDEXADORHASH_H_
 
+#include <unistd.h>
 #include "indexadorInformacion.h"
 #include "stemmer.h"
 #include "tokenizador.h"
@@ -29,7 +30,7 @@ class IndexadorHash
 		~IndexadorHash();
 
 		IndexadorHash& operator= (const IndexadorHash&);
-//--------------------------------------------
+
 		bool Indexar(const string& ficheroDocumentos);
 
 		bool IndexarDirectorio(const string& dirAIndexar);
@@ -100,14 +101,9 @@ class IndexadorHash
 
 		bool ListarDocs(const string& nomDoc) const;
 
-		int numeroEnIndice;
-
 		stemmerPorter stemmer;
 
 	private:
-
-
-		IndexadorHash();
 		string directorioIndice;
 		tr1::unordered_map<string, InformacionTermino> indice;
 		tr1::unordered_map<string, InfDoc> indiceDocs;
@@ -122,6 +118,18 @@ class IndexadorHash
 		int tipoStemmer;
 		bool almacenarEnDisco;
 		bool almacenarPosTerm;
+
+	private:
+		IndexadorHash();
+		inline void ImprimirIndice() const
+			{for(auto it = indice.begin(); it != indice.end(); ++it)	// A continuación aparecerá un listado del contenido del campo privado “índice” donde para cada término indexado se imprimirá: cout << termino << ‘\t’ << InformacionTermino << endl;
+					cout << it->first << '\t' << it->second << "\n";}
+		inline void ImprimeIndiceDocs() const
+			{for(auto it = indiceDocs.begin(); it != indiceDocs.end(); ++it)// A continuación aparecerá un listado del contenido del campo privado “indiceDocs” donde para cada documento indexado se imprimirá: cout << nomDoc << ‘\t’ << InfDoc << endl;
+				cout << it->first << '\t' << it->second << "\n";}
+		inline void ImprimeIndicePregunta() const
+			{for(auto it = indicePregunta.begin(); it != indicePregunta.end(); ++it)
+				cout << it->first << '\t' << it->second << "\n";}
 };
 
 #endif /* INDEXADORHASH_H_ */

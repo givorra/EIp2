@@ -132,7 +132,7 @@ bool Tokenizador::TokenizarDirectorio(const string& dirAIndexar) const
 	else
 	{
 		// Hago una lista en un fichero con find>fich
-		string cmd="find "+dirAIndexar+" -follow -type f|sort > .lista_fich";
+		string cmd="find "+dirAIndexar+" -follow -type f -not -name \"*.tk\" |sort > .lista_fich";
 		system(cmd.c_str());
 		return TokenizarListaFicheros(".lista_fich");
 	}
@@ -187,7 +187,7 @@ void Tokenizador::CasosEspeciales(const bool& nuevoCasosEspeciales)
 	casosEspeciales = nuevoCasosEspeciales;
 }
 
-bool Tokenizador::CasosEspeciales()
+bool Tokenizador::CasosEspeciales() const
 {
 	return casosEspeciales;
 }
@@ -197,7 +197,7 @@ void Tokenizador::PasarAminuscSinAcentos(const bool& nuevoPasarAminuscSinAcentos
 	pasarAminuscSinAcentos = nuevoPasarAminuscSinAcentos;
 }
 
-bool Tokenizador::PasarAminuscSinAcentos()
+bool Tokenizador::PasarAminuscSinAcentos() const
 {
 	return pasarAminuscSinAcentos;
 }
@@ -226,7 +226,7 @@ string Tokenizador::getMinusSinAcentos(const string& token) const
 				auxToken += 'u';
 				break;
 			case 209:
-				auxToken += 'ñ';
+				auxToken += 'ï¿½';
 				break;
 			default:
 				if(token[i] >= 'A' && token[i] <= 'Z')

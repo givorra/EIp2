@@ -31,7 +31,7 @@ enum TCasoEspecial
 };
 
 const string urlDelimiters = "_:/.?&-=#@";
-const string realDelimiters = "%$��";
+const string realDelimiters = "%$��";
 const string emailDelimiters = "-_.";
 
 class Tokenizador {
@@ -74,7 +74,7 @@ public:
 	// Cambia la variable privada “casosEspeciales”
 	void CasosEspeciales(const bool& nuevoCasosEspeciales);
 	// Devuelve el contenido de la variable privada “casosEspeciales”
-	bool CasosEspeciales();
+	bool CasosEspeciales() const;
 	/* Cambia la variable privada “pasarAminuscSinAcentos”. Atención al
 	formato de codificación del corpus (comando “file” de Linux). Para la
 	corrección de la práctica se utilizará el formato actual (ISO-8859).
@@ -82,7 +82,7 @@ public:
 	void PasarAminuscSinAcentos(const bool& nuevoPasarAminuscSinAcentos);
 
 	// Devuelve el contenido de la variable privada “pasarAminuscSinAcentos”
-	bool PasarAminuscSinAcentos();
+	bool PasarAminuscSinAcentos() const;
 
 
 	Tokenizador& operator=(const Tokenizador&); // Construye una copia
