@@ -11,9 +11,9 @@ IndexadorHash::IndexadorHash(const string& fichStopWords, const string& delimita
 		const bool& minuscSinAcentos, const string& dirIndice, const int& tStemmer, const bool& almEnDisco,
 		const bool& almPosTerm)
 {
-	this->ficheroStopWords = fichStopWords;
+	(*this).ficheroStopWords = fichStopWords;
 
-	ifstream f(fichStopWords,ifstream::in);
+	ifstream f(fichStopWords, ifstream::in);
 	if(f.good()){
 		string cadena;
 		f >> cadena;
@@ -30,9 +30,9 @@ IndexadorHash::IndexadorHash(const string& fichStopWords, const string& delimita
 		cerr << "sERROR: No existe el archivo: " << ficheroStopWords << "\n";
 	}
 
-	tok.DelimitadoresPalabra(delimitadores);
-	tok.PasarAminuscSinAcentos(minuscSinAcentos);
-	tok.CasosEspeciales(detectComp);
+	(*this).tok.DelimitadoresPalabra(delimitadores);
+	(*this).tok.PasarAminuscSinAcentos(minuscSinAcentos);
+	(*this).tok.CasosEspeciales(detectComp);
 
 	if(dirIndice=="")
 		directorioIndice = get_current_dir_name();
@@ -173,7 +173,6 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 						// Rerorremos los tokens de la linea leida
 						for(auto itTokens = tokens.begin(); itTokens != tokens.end(); ++itTokens)
 						{
-							++posTerm;	// Incrementamos posicion del termino
 
 							stemmer.stemmer((*itTokens), tipoStemmer);
 
@@ -183,7 +182,7 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 							{
 
 								++informacionDocumento.numPalSinParada;		// Incrementa palabras sin stop words
-								if(!Existe((*itTokens)))	// Si el termino no existe
+								if(!Existe((*itTokens)))					// Si el termino no existe
 								{
 
 									InformacionTermino informacionTerminoGlobal;
@@ -198,26 +197,25 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 									// Inserta el termino como global
 									//informacionTerminoGlobal.~InformacionTermino();
 									informacionTerminoGlobal.ftc = 1;
-									informacionTerminoGlobal.l_docs.insert({idDocAIndexar, informacionTerminoDocumento});
+									informacionTerminoGlobal.l_docs.insert({informacionDocumento.idDoc, informacionTerminoDocumento});
 									string termino = (*itTokens);
 									indice.insert({termino, informacionTerminoGlobal});
 								}
 								else						// Si el termino ya existe
 								{
-									//informacionTerminoDocumento.~InfTermDoc();
 									// Cargamos InformacionTermino
 									auto itIndice = indice.find((*itTokens));
 									auto itLdocs = itIndice->second.l_docs.find(informacionDocumento.idDoc);
 
 									if(itLdocs != itIndice->second.l_docs.end())	// Si ya está en el documento
 									{
-										++informacionDocumento.numPalDiferentes;
 										++itLdocs->second.ft;	// Incrementa frecuencia en el documento
 										itLdocs->second.posTerm.push_back(posTerm);
 									}
 									else		// Si existe pero no en el documento actual
 									{
 										// Inserta un nuevo registro documento - InfoTermDoc
+										++informacionDocumento.numPalDiferentes;
 										InfTermDoc informacionTerminoDocumento;
 										informacionTerminoDocumento.ft = 1;
 										informacionTerminoDocumento.posTerm.push_back(posTerm);
@@ -226,7 +224,9 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 									++itIndice->second.ftc;	// Incrementa frecuencia del termino global
 								}
 							}
+							++posTerm;	// Incrementamos posicion del termino
 						}
+
 						lineaDoc = "";
 						//getline(documento, lineaDoc);
 					}
@@ -234,7 +234,6 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 					// Actualizamos la informacion de la coleccion de documentos
 					informacionColeccionDocs.numTotalPal 			+= informacionDocumento.numPal;
 					informacionColeccionDocs.numTotalPalSinParada 	+= informacionDocumento.numPalSinParada;
-
 					informacionColeccionDocs.tamBytes				+= informacionDocumento.tamBytes;
 					indiceDocs.insert({nomDoc, informacionDocumento});		// Añadimos el documento como indexado
 
@@ -404,17 +403,21 @@ bool IndexadorHash::BorraDoc(const string& nomDoc)
 				itIndice->second.l_docs.erase(itLdocs);
 				// Si este termino solo aparecia en nomDoc, se elimina del indice de terminos
 				if(itIndice->second.l_docs.empty())
+				{
 					indice.erase(itIndice);
+					--informacionColeccionDocs.numTotalPalDiferentes;
+				}
 			}
 
 		}
 		// Resta totales de la informacion de la coleccion
 		informacionColeccionDocs.numDocs 				-= 1;
 		informacionColeccionDocs.numTotalPal 			-= itIndiceDocs->second.numPal;
-		informacionColeccionDocs.numTotalPalDiferentes 	-= itIndiceDocs->second.numPalDiferentes;
+		//informacionColeccionDocs.numTotalPalDiferentes 	-= itIndiceDocs->second.numPalDiferentes;
 		informacionColeccionDocs.numTotalPalSinParada 	-= itIndiceDocs->second.numPalSinParada;
 		informacionColeccionDocs.tamBytes 				-= itIndiceDocs->second.tamBytes;
 
+		indiceDocs.erase(itIndiceDocs);
 		return true;
 	}
 	return false;

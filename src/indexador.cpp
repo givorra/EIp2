@@ -9,9 +9,17 @@ using namespace std;
 int
 main(void)
 {
-IndexadorHash a("./StopWordsEspanyol.txt", ". ,:", false, false, "./indicePrueba", 0, false, true);
+IndexadorHash b("./StopWordsEspanyol.txt", ". ,:", false, false, "./indicePrueba", 0, false, true);
 
-a.Indexar("./listaFicheros_corto.txt");
+b.Indexar("./listaFicheros_corto.txt");
+b.GuardarIndexacion();
+
+IndexadorHash a("./indicePrueba");
+
+cout << a.DevolverDelimitadores () << endl;
+cout << a.DevolverDirIndice () << endl;
+cout << a.DevolverTipoStemming () << endl;
+cout << a.DevolverAlmEnDisco () << endl;
 
 InformacionTermino inf1;
 

@@ -236,9 +236,9 @@ InformacionTermino& InformacionTermino::operator=(const InformacionTermino& it)
 ostream& operator<<(ostream& s, const InformacionTermino& p)
 {
 	s << "Frecuencia total: " << p.ftc << "\tfd: " << p.l_docs.size();
-	// A continuación se mostrarían todos los elementos de p.l_docs:
-	for(auto itLdocs = p.l_docs.begin(); itLdocs != p.l_docs.end(); ++itLdocs)
-		s << "\tId.Doc: " << itLdocs->first << "\t" << itLdocs->second << "\n";
+	for (auto itLdocs = p.l_docs.begin(); itLdocs != p.l_docs.end(); ++itLdocs)
+		s << "\t" << "Id.Doc: " << itLdocs->first << '\t' << itLdocs->second;
+
 	return s;
 }
 
@@ -271,10 +271,13 @@ InfTermDoc& InfTermDoc::operator= (const InfTermDoc& itd)
 
 ostream& operator<<(ostream& s, const InfTermDoc& p)
 {
-	s << "ft: " << p.ft;
-	// A continuación se mostrarían todos los elementos de p.posTerm (“posicion	TAB posicion TAB ... posicion, es decir
-	// nunca finalizará en un TAB”): s << “\t“ << posicion;
-	for(auto itPosTerm = p.posTerm.begin(); itPosTerm != p.posTerm.end(); ++itPosTerm)
-		s << (*itPosTerm);
+	s << "ft: " << p.ft << "\t";
+	for (auto itPosTerm = p.posTerm.begin(); itPosTerm != p.posTerm.end();++itPosTerm)
+	{
+		if (itPosTerm == p.posTerm.begin())
+			s << *itPosTerm;
+		else
+			s << "\t" << *itPosTerm;
+	}
 	return s;
 }
