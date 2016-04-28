@@ -201,7 +201,7 @@ InfDoc& InfDoc::operator=(const InfDoc& id)
 
 ostream& operator<<(ostream& s, const InfDoc& p)
 {
-	s << "idDoc:" << p.idDoc << "\tnumPal:" <<	p.numPal << "\tnumPalSinParada: " << p.numPalSinParada <<
+	s << "idDoc: " << p.idDoc << "\tnumPal: " <<	p.numPal << "\tnumPalSinParada: " << p.numPalSinParada <<
 		"\tnumPalDiferentes: " << p.numPalDiferentes << "\ttamBytes: " << p.tamBytes;
 	return s;
 }
@@ -235,8 +235,10 @@ InformacionTermino& InformacionTermino::operator=(const InformacionTermino& it)
 
 ostream& operator<<(ostream& s, const InformacionTermino& p)
 {
-	//s << "Frecuencia total: " << p.ftc << "\tfd: " << p.l_docs.size();
-	// A continuación se mostrarían todos los elementos de p.l_docs: s << “\tId.Doc: “ << idDoc << “\t” << InfTermDoc;
+	s << "Frecuencia total: " << p.ftc << "\tfd: " << p.l_docs.size();
+	// A continuación se mostrarían todos los elementos de p.l_docs:
+	for(auto itLdocs = p.l_docs.begin(); itLdocs != p.l_docs.end(); ++itLdocs)
+		s << "\tId.Doc: " << itLdocs->first << "\t" << itLdocs->second << "\n";
 	return s;
 }
 
@@ -272,5 +274,7 @@ ostream& operator<<(ostream& s, const InfTermDoc& p)
 	s << "ft: " << p.ft;
 	// A continuación se mostrarían todos los elementos de p.posTerm (“posicion	TAB posicion TAB ... posicion, es decir
 	// nunca finalizará en un TAB”): s << “\t“ << posicion;
+	for(auto itPosTerm = p.posTerm.begin(); itPosTerm != p.posTerm.end(); ++itPosTerm)
+		s << (*itPosTerm);
 	return s;
 }

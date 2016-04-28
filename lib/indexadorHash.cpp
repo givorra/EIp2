@@ -14,7 +14,7 @@ IndexadorHash::IndexadorHash(const string& fichStopWords, const string& delimita
 	this->ficheroStopWords = fichStopWords;
 
 	ifstream f(fichStopWords,ifstream::in);
-	if(f.is_open()){
+	if(f.good()){
 		string cadena;
 		f >> cadena;
 		int cont = 0;
@@ -108,27 +108,25 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 	int idDocAIndexar;
 	list<string> tokens;
 	int posTerm;		// Posicion del termino en el documento
-	InformacionTermino informacionTerminoGlobal;
-	InfTermDoc informacionTerminoDocumento;
-	InfDoc informacionDocumento;
 
-	if(fichDocumentos.is_open())
+	if(fichDocumentos.good())
 	{
 		ifstream documento;
 		nomDoc = "";						// Inicializa nomDoc
-		getline(fichDocumentos, nomDoc);	// Leemos primer documento a indexar
-		while(!fichDocumentos.eof())
+
+		while(getline(fichDocumentos, nomDoc))			// Leemos primer documento a indexar
 		{
 			auto itIndiceDocs = indiceDocs.find(nomDoc);
 			idDocAIndexar = 0;
 			indexar = false;
 			posTerm = 0;
 
+			stat(nomDoc.c_str(), &statDocumento);
+
 			// COMPROBAMOS SI YA EXISTE EL DOCUMENTO
 			if(itIndiceDocs != indiceDocs.end())
 			{
 				cerr << "AVISO: Este fichero ha sido previamente indexado." << "\n";
-				stat(nomDoc.c_str(), &statDocumento);
 				Fecha fechaDoc(gmtime(&(statDocumento.st_mtime)));
 
 				// Guardamos id del documento indexado anteriormente
@@ -153,10 +151,9 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 			if(indexar)
 			{
 				documento.open(nomDoc.c_str(), ifstream::in);
-				if(documento.is_open())	// Abre documento a indexar
+				if(documento.good())	// Abre documento a indexar
 				{
-					//informacionDocumento.~InfDoc();
-
+					InfDoc informacionDocumento;
 
 					if(idDocAIndexar != 0)
 						informacionDocumento.idDoc = idDocAIndexar;
@@ -167,12 +164,9 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 					}
 					informacionDocumento.tamBytes = statDocumento.st_size;
 
-					getline(documento, lineaDoc);
-					while(!documento.eof())
-					{
-						if(!tokens.empty())
-							tokens.clear();
 
+					while(getline(documento, lineaDoc))
+					{
 						tok.Tokenizar(lineaDoc, tokens);				// Obtenemos los tokens de la linea
 						informacionDocumento.numPal += tokens.size();	// Acumulamos el numero de palabras de la l
 
@@ -185,13 +179,17 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 
 							auto itStopWords = stopWords.find((*itTokens));
 
-							if(itStopWords != stopWords.end())	// No es una stop word
+							if(itStopWords == stopWords.end())	// No es una stop word
 							{
 
 								++informacionDocumento.numPalSinParada;		// Incrementa palabras sin stop words
 								if(!Existe((*itTokens)))	// Si el termino no existe
 								{
-									++informacionDocumento.numPalDiferentes;	// Incrementa palabras diferentes
+
+									InformacionTermino informacionTerminoGlobal;
+									InfTermDoc informacionTerminoDocumento;
+									++informacionDocumento.numPalDiferentes;			// Incrementa palabras diferentes DOCUMENTO
+									++informacionColeccionDocs.numTotalPalDiferentes;	// Incrementa palabras diferentes COLECCION
 
 									// Inicializa termino en documento
 									informacionTerminoDocumento.ft = 1;
@@ -213,13 +211,14 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 
 									if(itLdocs != itIndice->second.l_docs.end())	// Si ya está en el documento
 									{
+										++informacionDocumento.numPalDiferentes;
 										++itLdocs->second.ft;	// Incrementa frecuencia en el documento
 										itLdocs->second.posTerm.push_back(posTerm);
 									}
 									else		// Si existe pero no en el documento actual
 									{
 										// Inserta un nuevo registro documento - InfoTermDoc
-										//informacionTerminoDocumento.~InfTermDoc();
+										InfTermDoc informacionTerminoDocumento;
 										informacionTerminoDocumento.ft = 1;
 										informacionTerminoDocumento.posTerm.push_back(posTerm);
 										itIndice->second.l_docs.insert({informacionDocumento.idDoc, informacionTerminoDocumento});
@@ -229,16 +228,17 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 							}
 						}
 						lineaDoc = "";
-						getline(documento, lineaDoc);
+						//getline(documento, lineaDoc);
 					}
 
 					// Actualizamos la informacion de la coleccion de documentos
 					informacionColeccionDocs.numTotalPal 			+= informacionDocumento.numPal;
 					informacionColeccionDocs.numTotalPalSinParada 	+= informacionDocumento.numPalSinParada;
-					informacionColeccionDocs.numTotalPalDiferentes 	+= informacionDocumento.numPalDiferentes;
+
 					informacionColeccionDocs.tamBytes				+= informacionDocumento.tamBytes;
 					indiceDocs.insert({nomDoc, informacionDocumento});		// Añadimos el documento como indexado
 
+					documento.close();
 				}
 				else
 				{
@@ -247,9 +247,6 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 					return false;
 				}
 			}
-
-			nomDoc = "";
-			getline(fichDocumentos, nomDoc);	// Leemos siguiente nombre de fichero
 		}
 		fichDocumentos.close();
 	}

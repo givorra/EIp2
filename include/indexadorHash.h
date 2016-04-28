@@ -11,6 +11,10 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include "indexadorInformacion.h"
 #include "stemmer.h"
 #include "tokenizador.h"
