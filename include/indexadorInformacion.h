@@ -22,9 +22,10 @@ using namespace std;
 class Fecha
 {
 public:
-	int dia, mes, anyo, hora, minutos, segundos;
-
+	int dia, mes, anyo, hora, min, seg;
 	Fecha();
+	Fecha(struct tm *clock);
+	bool operator <(const Fecha& fecha)const;
 };
 
 class InformacionPregunta

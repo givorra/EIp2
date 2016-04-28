@@ -6,7 +6,7 @@
 using namespace std;
 
 /////////////////////////////////////////////////////////
-// ATENCIï¿½N: Actualizar convenientemente en el fichero indexador03.cpp.sal los tamanyos en bytes de los archivos y de la colecciï¿½n
+// ATENCIÓN: Actualizar convenientemente en el fichero indexador03.cpp.sal los tamanyos en bytes de los archivos y de la colección
 /////////////////////////////////////////////////////////
 
 int

@@ -9,6 +9,8 @@
 #define INDEXADORHASH_H_
 
 #include <unistd.h>
+#include <stdio.h>
+#include <time.h>
 #include "indexadorInformacion.h"
 #include "stemmer.h"
 #include "tokenizador.h"

@@ -8,7 +8,33 @@
 #include "indexadorInformacion.h"
 
 Fecha::Fecha()
-{}
+{
+	dia = 0;
+	mes = 0;
+	anyo = 0;
+	hora = 0;
+	min = 0;
+	seg = 0;
+}
+
+Fecha::Fecha(struct tm *clock)
+{
+	dia = clock->tm_mday;
+	mes = clock->tm_mon;
+	anyo = clock->tm_year;
+	hora = clock->tm_hour;
+	min = clock->tm_min;
+	seg = clock->tm_sec;
+}
+
+bool Fecha::operator<(const Fecha& f)const {
+	return anyo<f.anyo ||
+  (anyo==f.anyo && mes<f.mes) ||
+  (anyo==f.anyo && mes==f.mes && dia<f.dia) ||
+  (anyo==f.anyo && mes==f.mes && dia==f.dia && hora<f.hora) ||
+  (anyo==f.anyo && mes==f.mes && dia==f.dia && hora==f.hora && min<f.min) ||
+  (anyo==f.anyo && mes==f.mes && dia==f.dia && hora==f.hora && min==f.min && seg<f.seg);
+}
 /************************************** InformacionPregunta *******************************************/
 
 InformacionPregunta::InformacionPregunta (const InformacionPregunta &ip):
@@ -122,7 +148,7 @@ InfColeccionDocs& InfColeccionDocs::operator=(const InfColeccionDocs& icd)
 
 ostream& operator<<(ostream& s, const InfColeccionDocs& p)
 {
-	s << "numDocs: " << p.numDocs << "\tnumTotalPal: " << p.numTotalPal <<"\tnumTotalPalSinParada:" <<
+	s << "numDocs: " << p.numDocs << "\tnumTotalPal: " << p.numTotalPal <<"\tnumTotalPalSinParada: " <<
 			p.numTotalPalSinParada << "\tnumTotalPalDiferentes: " << p.numTotalPalDiferentes << "\ttamBytes: " <<
 			p.tamBytes;
 	return s;

@@ -42,6 +42,7 @@ IndexadorHash::IndexadorHash(const string& fichStopWords, const string& delimita
 	tipoStemmer = tStemmer;
 	almacenarEnDisco = almEnDisco;
 	almacenarPosTerm = almPosTerm;
+	//indice.clear();
 }
 
 IndexadorHash::IndexadorHash(const string& directorioIndexacion)
@@ -99,7 +100,164 @@ IndexadorHash& IndexadorHash::operator= (const IndexadorHash& ih)
 
 bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 {
+	ifstream fichDocumentos(ficheroDocumentos, ifstream::in);
+	string nomDoc;		// Nombre documento a indexar
+	string lineaDoc;	// Linea a tokenizar
+	bool indexar = false;	// Indica si se ha indexado
+	struct stat statDocumento;
+	int idDocAIndexar;
+	list<string> tokens;
+	int posTerm;		// Posicion del termino en el documento
+	InformacionTermino informacionTerminoGlobal;
+	InfTermDoc informacionTerminoDocumento;
+	InfDoc informacionDocumento;
 
+	if(fichDocumentos.is_open())
+	{
+		ifstream documento;
+		nomDoc = "";						// Inicializa nomDoc
+		getline(fichDocumentos, nomDoc);	// Leemos primer documento a indexar
+		while(!fichDocumentos.eof())
+		{
+			auto itIndiceDocs = indiceDocs.find(nomDoc);
+			idDocAIndexar = 0;
+			indexar = false;
+			posTerm = 0;
+
+			// COMPROBAMOS SI YA EXISTE EL DOCUMENTO
+			if(itIndiceDocs != indiceDocs.end())
+			{
+				cerr << "AVISO: Este fichero ha sido previamente indexado." << "\n";
+				stat(nomDoc.c_str(), &statDocumento);
+				Fecha fechaDoc(gmtime(&(statDocumento.st_mtime)));
+
+				// Guardamos id del documento indexado anteriormente
+				if(itIndiceDocs->second.fechaModificacion < fechaDoc)
+				{
+					cout << "Documento " << nomDoc << " repetido. Volvemos a reindexarlo.\n";
+					idDocAIndexar = itIndiceDocs->second.idDoc;
+					indexar = true;
+				}
+
+				//Borramos el documento antiguo.
+				if(!BorraDoc(nomDoc))
+				{
+					cerr << "ERROR: No se pudo borrar el documento " << nomDoc << " para su reindexacion.\n";
+					return false;
+				}
+			}
+			else
+				indexar = true;		// Si no existe, decimos que lo indexe
+
+			// INDEXAMOS SI HAY QUE INDEXAR
+			if(indexar)
+			{
+				documento.open(nomDoc.c_str(), ifstream::in);
+				if(documento.is_open())	// Abre documento a indexar
+				{
+					//informacionDocumento.~InfDoc();
+
+
+					if(idDocAIndexar != 0)
+						informacionDocumento.idDoc = idDocAIndexar;
+					else
+					{
+						++informacionColeccionDocs.numDocs;
+						informacionDocumento.idDoc = informacionColeccionDocs.numDocs;
+					}
+					informacionDocumento.tamBytes = statDocumento.st_size;
+
+					getline(documento, lineaDoc);
+					while(!documento.eof())
+					{
+						if(!tokens.empty())
+							tokens.clear();
+
+						tok.Tokenizar(lineaDoc, tokens);				// Obtenemos los tokens de la linea
+						informacionDocumento.numPal += tokens.size();	// Acumulamos el numero de palabras de la l
+
+						// Rerorremos los tokens de la linea leida
+						for(auto itTokens = tokens.begin(); itTokens != tokens.end(); ++itTokens)
+						{
+							++posTerm;	// Incrementamos posicion del termino
+
+							stemmer.stemmer((*itTokens), tipoStemmer);
+
+							auto itStopWords = stopWords.find((*itTokens));
+
+							if(itStopWords != stopWords.end())	// No es una stop word
+							{
+
+								++informacionDocumento.numPalSinParada;		// Incrementa palabras sin stop words
+								if(!Existe((*itTokens)))	// Si el termino no existe
+								{
+									++informacionDocumento.numPalDiferentes;	// Incrementa palabras diferentes
+
+									// Inicializa termino en documento
+									informacionTerminoDocumento.ft = 1;
+									informacionTerminoDocumento.posTerm.push_back(posTerm);
+
+									// Inserta el termino como global
+									//informacionTerminoGlobal.~InformacionTermino();
+									informacionTerminoGlobal.ftc = 1;
+									informacionTerminoGlobal.l_docs.insert({idDocAIndexar, informacionTerminoDocumento});
+									string termino = (*itTokens);
+									indice.insert({termino, informacionTerminoGlobal});
+								}
+								else						// Si el termino ya existe
+								{
+									//informacionTerminoDocumento.~InfTermDoc();
+									// Cargamos InformacionTermino
+									auto itIndice = indice.find((*itTokens));
+									auto itLdocs = itIndice->second.l_docs.find(informacionDocumento.idDoc);
+
+									if(itLdocs != itIndice->second.l_docs.end())	// Si ya está en el documento
+									{
+										++itLdocs->second.ft;	// Incrementa frecuencia en el documento
+										itLdocs->second.posTerm.push_back(posTerm);
+									}
+									else		// Si existe pero no en el documento actual
+									{
+										// Inserta un nuevo registro documento - InfoTermDoc
+										//informacionTerminoDocumento.~InfTermDoc();
+										informacionTerminoDocumento.ft = 1;
+										informacionTerminoDocumento.posTerm.push_back(posTerm);
+										itIndice->second.l_docs.insert({informacionDocumento.idDoc, informacionTerminoDocumento});
+									}
+									++itIndice->second.ftc;	// Incrementa frecuencia del termino global
+								}
+							}
+						}
+						lineaDoc = "";
+						getline(documento, lineaDoc);
+					}
+
+					// Actualizamos la informacion de la coleccion de documentos
+					informacionColeccionDocs.numTotalPal 			+= informacionDocumento.numPal;
+					informacionColeccionDocs.numTotalPalSinParada 	+= informacionDocumento.numPalSinParada;
+					informacionColeccionDocs.numTotalPalDiferentes 	+= informacionDocumento.numPalDiferentes;
+					informacionColeccionDocs.tamBytes				+= informacionDocumento.tamBytes;
+					indiceDocs.insert({nomDoc, informacionDocumento});		// Añadimos el documento como indexado
+
+				}
+				else
+				{
+					cerr << "ERROR: El fichero " << nomDoc << " no ha sido encontrado." << "\n";
+					this->~IndexadorHash();
+					return false;
+				}
+			}
+
+			nomDoc = "";
+			getline(fichDocumentos, nomDoc);	// Leemos siguiente nombre de fichero
+		}
+		fichDocumentos.close();
+	}
+	else
+	{
+		cerr << "sERROR: No existe el archivo: " << ficheroDocumentos << "\n";
+	}
+	return true;
 }
 
 bool IndexadorHash::IndexarDirectorio(const string& dirAIndexar)
