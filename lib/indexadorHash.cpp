@@ -182,7 +182,9 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 							{
 
 								++informacionDocumento.numPalSinParada;		// Incrementa palabras sin stop words
-								if(!Existe((*itTokens)))					// Si el termino no existe
+								auto itIndice = indice.find((*itTokens));
+
+								if(itIndice == indice.end())					// Si el termino no existe
 								{
 
 									InformacionTermino informacionTerminoGlobal;
@@ -204,7 +206,7 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 								else						// Si el termino ya existe
 								{
 									// Cargamos InformacionTermino
-									auto itIndice = indice.find((*itTokens));
+
 									auto itLdocs = itIndice->second.l_docs.find(informacionDocumento.idDoc);
 
 									if(itLdocs != itIndice->second.l_docs.end())	// Si ya estÃ¡ en el documento
@@ -276,12 +278,211 @@ bool IndexadorHash::IndexarDirectorio(const string& dirAIndexar)
 
 bool IndexadorHash::GuardarIndexacion() const
 {
+	struct stat statDir;
+
+	stat(directorioIndice.c_str(), &statDir);
+
+	if(!S_ISDIR(statDir.st_mode))				// Si no existe directorio, lo creamos
+		system(string("mkdir " +directorioIndice).c_str());
+
+	ofstream f(directorioIndice+"/"+ficheroIndice, ofstream::out);
+
+	if(f.good())
+	{
+		f << almacenarPosTerm << "\n";
+		f << almacenarEnDisco << "\n";
+		f << ficheroStopWords << "\n";
+		for(auto itStopWords = stopWords.begin(); itStopWords != stopWords.end(); ++itStopWords)
+			f << (*itStopWords) << " ";
+		f << "\n";
+		f << infPregunta.numTotalPal << "\n";
+		f << infPregunta.numTotalPalDiferentes << "\n";
+		f << infPregunta.numTotalPalSinParada << "\n";
+		f << pregunta << "\n";
+		f << indicePregunta.size() << "\n";		// Numero de elementos de la pregunta
+		// Escribe todos los InformacionTerminoPregunta
+		for(auto itIndicePregunta = indicePregunta.begin(); itIndicePregunta != indicePregunta.end(); ++itIndicePregunta)
+		{
+			f << itIndicePregunta->first << "\n";
+			f << itIndicePregunta->second.ft << "\n";
+			for(auto itPosTerm = itIndicePregunta->second.posTerm.begin(); itPosTerm != itIndicePregunta->second.posTerm.end(); ++itPosTerm)
+				f << (*itPosTerm) << " ";
+			f << "\n";
+		}
+		f << informacionColeccionDocs.numDocs << "\n";
+		f << informacionColeccionDocs.numTotalPal << "\n";
+		f << informacionColeccionDocs.numTotalPalDiferentes << "\n";
+		f << informacionColeccionDocs.numTotalPalSinParada << "\n";
+		f << informacionColeccionDocs.tamBytes << "\n";
+
+		f << indice.size() << "\n";
+		// Escribimos indice --> coleccion de terminos
+		for(auto itIndice = indice.begin(); itIndice != indice.end(); ++itIndice)
+		{
+			f << itIndice->first << "\n";
+			f << itIndice->second.ftc << "\n";
+			f << itIndice->second.l_docs.size() << "\n";
+
+			// Escribimos ldocs --> InfTermDocs de cada termino
+			for(auto itLdocs = itIndice->second.l_docs.begin(); itLdocs != itIndice->second.l_docs.end(); ++itLdocs)
+			{
+				f << itLdocs->first << "\n";
+				f << itLdocs->second.ft << "\n";
+				for(auto itPosTerm = itLdocs->second.posTerm.begin(); itPosTerm != itLdocs->second.posTerm.end(); ++itPosTerm)
+					f << (*itPosTerm) << " ";
+				f << "\n";
+			}
+		}
+
+		f << indiceDocs.size() << "\n";
+		// Escribimos indiceDocs --> coleccion de documentos indexados
+		for(auto itIndiceDocs = indiceDocs.begin(); itIndiceDocs != indiceDocs.end(); ++itIndiceDocs)
+		{
+			f << itIndiceDocs->first << "\n";
+			f << itIndiceDocs->second.idDoc << "\n";
+			f << itIndiceDocs->second.numPal << "\n";
+			f << itIndiceDocs->second.numPalDiferentes << "\n";
+			f << itIndiceDocs->second.numPalSinParada << "\n";
+			f << itIndiceDocs->second.tamBytes << "\n";
+		}
+		f << tok.CasosEspeciales() << "\n";
+		f << tok.PasarAminuscSinAcentos() << "\n";
+		f << tok.DelimitadoresPalabra() << "\n";
+
+		f.close();
+		return true;
+	}
+	else
+	{
+		cerr << "ERROR: No se ha podido crear fichero para guardar indexación";
+		return false;
+	}
 
 }
 
 bool IndexadorHash::RecuperarIndexacion(const string& directorioIndexacion)
 {
+	ifstream f(directorioIndice+"/"+ficheroIndice, ifstream::in);
+	Tokenizador tokAux(" ", false, false);
+	if(f.good())
+	{
+		string dato = "";
+		getline(f, dato);
+		almacenarPosTerm = atoi(dato.c_str());
+		getline(f, dato);
+		almacenarEnDisco = atoi(dato.c_str());
+		getline(f, ficheroStopWords);
 
+		// Leer stop words
+		getline(f, dato);
+		list<string> tokens;
+		tokAux.Tokenizador(dato, tokens);
+
+		for(auto itStopWords = tokens.begin(); itStopWords != tokens.end(); ++itStopWords)
+			stopWords.insert((*itStopWords));
+
+		getline(f, dato);
+		infPregunta.numTotalPal = atoi(dato.c_str());
+		getline(f, dato);
+		infPregunta.numTotalPalDiferentes = atoi(dato.c_str());
+		getline(f, dato);
+		infPregunta.numTotalPalSinParada = atoi(dato.c_str());
+		getline(f, pregunta);
+
+		// Indice pregunta
+		getline(f, dato);			// Tamaño del indicePregunta
+		for(int i = atoi(dato.c_str()); i != 0; i--)
+		{
+			string termino;
+			InformacionTerminoPregunta infTermPreg;
+			getline(f, termino);
+
+			getline(f, dato);
+			infTermPreg.ft = atoi(dato.c_str());
+
+			getline(f, dato);
+			tokAux.Tokenizar(dato, tokens);
+			for(auto itTokens = tokens.begin(); itTokens != tokens.end(); ++itTokens)
+				infTermPreg.posTerm.push_back(atoi((*itTokens).c_str()));
+
+			indicePregunta.insert({termino, infTermPreg});
+		}
+		getline(f, dato);
+		informacionColeccionDocs.numDocs				= atoi(dato.c_str());
+		getline(f, dato);
+		informacionColeccionDocs.numTotalPal			= atoi(dato.c_str());
+		getline(f, dato);
+		informacionColeccionDocs.numTotalPalDiferentes	= atoi(dato.c_str());
+		getline(f, dato);
+		informacionColeccionDocs.numTotalPalSinParada	= atoi(dato.c_str());
+		getline(f, dato);
+		informacionColeccionDocs.tamBytes				= atoi(dato.c_str());
+		getline(f, dato);
+		for(int i = atoi(dato.c_str()); i != 0; i--)
+		{
+			string termino;
+			getline(f, termino);
+
+			InformacionTermino infoTermino;
+			getline(f, dato);
+			infoTermino.ftc = atoi(dato.c_str());
+
+			getline(f, dato);
+			for(int i = atoi(dato.c_str()); i != 0; i--)
+			{
+				InfTermDoc infTermDoc;
+				string idDoc;
+				getline(f, idDoc);
+
+				getline(f, dato);
+				infTermDoc.ft = atoi(dato.c_str());
+				getline(f, dato);
+				tokAux.Tokenizar(dato, tokens);
+				for(auto itTokens = tokens.begin(); itTokens != tokens.end(); ++itTokens)
+				{
+
+				}
+			}
+		}
+		/*
+		 *
+
+		f << indice.size() << "\n";
+		// Escribimos indice --> coleccion de terminos
+		for(auto itIndice = indice.begin(); itIndice != indice.end(); ++itIndice)
+		{
+			f << itIndice->first << "\n";
+			f << itIndice->second.ftc << "\n";
+			f << itIndice->second.l_docs.size() << "\n";
+
+			// Escribimos ldocs --> InfTermDocs de cada termino
+			for(auto itLdocs = itIndice->second.l_docs.begin(); itLdocs != itIndice->second.l_docs.end(); ++itLdocs)
+			{
+				f << itLdocs->first << "\n";
+				f << itLdocs->second.ft << "\n";
+				for(auto itPosTerm = itLdocs->second.posTerm.begin(); itPosTerm != itLdocs->second.posTerm.end(); ++itPosTerm)
+					f << (*itPosTerm) << " ";
+				f << "\n";
+			}
+		}
+
+		f << indiceDocs.size() << "\n";
+		// Escribimos indiceDocs --> coleccion de documentos indexados
+		for(auto itIndiceDocs = indiceDocs.begin(); itIndiceDocs != indiceDocs.end(); ++itIndiceDocs)
+		{
+			f << itIndiceDocs->first << "\n";
+			f << itIndiceDocs->second.idDoc << "\n";
+			f << itIndiceDocs->second.numPal << "\n";
+			f << itIndiceDocs->second.numPalDiferentes << "\n";
+			f << itIndiceDocs->second.numPalSinParada << "\n";
+			f << itIndiceDocs->second.tamBytes << "\n";
+		}
+		f << tok.CasosEspeciales() << "\n";
+		f << tok.PasarAminuscSinAcentos() << "\n";
+		f << tok.DelimitadoresPalabra() << "\n";*/
+
+		f.close();
+	}
 }
 
 void IndexadorHash::ImprimirIndexacion() const
@@ -333,12 +534,20 @@ bool IndexadorHash::IndexarPregunta(const string& preg)
 				infoTerminoPreg.ft = 1;
 				infoTerminoPreg.posTerm.push_back((posTerm));
 
+				indicePregunta.insert({(*itTokens), infoTerminoPreg});
 				++infPregunta.numTotalPalDiferentes;
 			}
 			++infPregunta.numTotalPalSinParada;
 		}
 		++posTerm;
 	}
+	if(infPregunta.numTotalPalSinParada == 0)
+	{
+		cerr << "ERROR: pregunta con 0 terminos" << "\n";
+		return false;
+	}
+	else
+		return true;
 }
 
 bool IndexadorHash::DevuelvePregunta(string& preg) const
@@ -375,7 +584,7 @@ bool IndexadorHash::DevuelvePregunta(InformacionPregunta& inf) const
 void IndexadorHash::ImprimirIndexacionPregunta()
 {
 	cout << "Pregunta indexada: " << pregunta << "\n";
-	cout << "Terminos indexados en la pregunta: " << "\n";
+	cout << "Terminos indexados en la pregunta: ";// << "\n";
 	ImprimeIndicePregunta();
 	cout << "Informacion de la pregunta: " << infPregunta << "\n";
 }
@@ -457,7 +666,6 @@ bool IndexadorHash::BorraDoc(const string& nomDoc)
 		// Resta totales de la informacion de la coleccion
 		informacionColeccionDocs.numDocs 				-= 1;
 		informacionColeccionDocs.numTotalPal 			-= itIndiceDocs->second.numPal;
-		//informacionColeccionDocs.numTotalPalDiferentes 	-= itIndiceDocs->second.numPalDiferentes;
 		informacionColeccionDocs.numTotalPalSinParada 	-= itIndiceDocs->second.numPalSinParada;
 		informacionColeccionDocs.tamBytes 				-= itIndiceDocs->second.tamBytes;
 
@@ -519,7 +727,7 @@ void IndexadorHash::ListarPalParada() const
 
 int IndexadorHash::NumPalParada() const
 {
-	stopWords.size();
+	return stopWords.size();
 }
 
 string IndexadorHash::DevolverDelimitadores () const
@@ -618,4 +826,5 @@ ostream& operator<<(ostream& s, const IndexadorHash& p)
 	s << "Se almacenaran las posiciones de los terminos: " << p.almacenarPosTerm<<endl;
 	return s;
 }
+
 

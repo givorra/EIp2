@@ -21,6 +21,8 @@
 
 using namespace std;
 
+const string ficheroIndice = "indice";
+
 class IndexadorHash
 {
 

@@ -27,7 +27,7 @@ double getcputime(void) {
 
 //main
 int main() {
-
+/*
     long double aa=getcputime();
 
     IndexadorHash a("./StopWordsEspanyol.txt", ". ,:", false, false, "./indicePrueba", 1, false, true);
@@ -35,6 +35,9 @@ int main() {
     a.IndexarDirectorio("corpus");
     cout << a <<"\n";
 
-    cout << "Ha tardado " << getcputime() - aa << " segundos" << endl;
+    cout << "Ha tardado " << getcputime() - aa << " segundos" << endl;*/
+	IndexadorHash a("./StopWordsEspanyol.txt", ". ,:", false, false, "./indicePrueba", 1, false, true);
+    a.IndexarDirectorio("corpus");
+    a.GuardarIndexacion();
 
 }
