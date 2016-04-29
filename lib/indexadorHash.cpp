@@ -382,7 +382,9 @@ bool IndexadorHash::GuardarIndexacion() const
 
 bool IndexadorHash::RecuperarIndexacion(const string& directorioIndexacion)
 {
-	ifstream f(directorioIndice+"/"+ficheroIndice, ifstream::in);
+	limpiarIndexador();
+	ifstream f(directorioIndexacion+"/"+ficheroIndice, ifstream::in);
+	directorioIndice = directorioIndexacion;
 	Tokenizador tokAux(" ", false, false);
 	if(f.good())
 	{
@@ -437,6 +439,7 @@ bool IndexadorHash::RecuperarIndexacion(const string& directorioIndexacion)
 		informacionColeccionDocs.numTotalPalSinParada	= atoi(dato.c_str());
 		getline(f, dato);
 		informacionColeccionDocs.tamBytes				= atoi(dato.c_str());
+
 		getline(f, dato);
 		for(int i = atoi(dato.c_str()); i != 0; i--)
 		{
@@ -486,12 +489,22 @@ bool IndexadorHash::RecuperarIndexacion(const string& directorioIndexacion)
 			getline(f, dato);
 			infDoc.tamBytes = atoi(dato.c_str());
 
-			f >> infDoc.fechaModificacion.anyo;
-			f >> infDoc.fechaModificacion.mes;
-			f >> infDoc.fechaModificacion.dia;
-			f >> infDoc.fechaModificacion.hora;
-			f >> infDoc.fechaModificacion.min;
-			f >> infDoc.fechaModificacion.seg;
+			getline(f, dato);
+			tokAux.Tokenizar(dato, tokens);
+			auto itTokens = tokens.begin();
+			++itTokens;
+			infDoc.fechaModificacion.anyo 	= atoi((*itTokens).c_str());
+			++itTokens;
+			infDoc.fechaModificacion.mes 	= atoi((*itTokens).c_str());
+			++itTokens;
+			infDoc.fechaModificacion.dia 	= atoi((*itTokens).c_str());
+			++itTokens;
+			infDoc.fechaModificacion.hora 	= atoi((*itTokens).c_str());
+			++itTokens;
+			infDoc.fechaModificacion.min 	= atoi((*itTokens).c_str());
+			++itTokens;
+			infDoc.fechaModificacion.seg 	= atoi((*itTokens).c_str());
+			++itTokens;
 		}
 		getline(f, dato);
 		tok.CasosEspeciales(atoi(dato.c_str()));
@@ -501,11 +514,10 @@ bool IndexadorHash::RecuperarIndexacion(const string& directorioIndexacion)
 		tok.DelimitadoresPalabra(dato);
 
 		f.close();
-		ficheroIndice = "indice2";		// **************** BORRAAAAAAAAAAAAR
 	}
 	else
 	{
-		cerr << "ERROR: No se ha podido abrir el archivo para escritura" << "\n";
+		cerr << "ERROR: No se ha podido abrir el archivo para lectura" << "\n";
 		return false;
 	}
 	return true;
@@ -547,6 +559,7 @@ bool IndexadorHash::IndexarPregunta(const string& preg)
 
 		if(itStopWords == stopWords.end())	// No es una stop word
 		{
+			string palabra = *itTokens;
 			auto itIndicePregunta = indicePregunta.find((*itTokens));
 
 			if(itIndicePregunta != indicePregunta.end())		// El termino ya esta indexado en la pregunta
@@ -635,14 +648,13 @@ bool IndexadorHash::Devuelve(const string& word, InformacionTermino& inf) const
 
 bool IndexadorHash::Devuelve(const string& word, const string& nomDoc, InfTermDoc& InfDoc) const
 {
-	if(Existe(word))
+	auto itIndiceDocs = indiceDocs.find(nomDoc);
+
+	if(itIndiceDocs != indiceDocs.end())
 	{
-		auto itIndiceDocs = indiceDocs.find(nomDoc);
-
-		if(itIndiceDocs != indiceDocs.end())
+		auto itIndice = indice.find(word);
+		if(itIndice != indice.end())
 		{
-			auto itIndice = indice.find(word);
-
 			long int idDoc = itIndiceDocs->second.idDoc;
 			auto itLdocs = itIndice->second.l_docs.find(idDoc);
 

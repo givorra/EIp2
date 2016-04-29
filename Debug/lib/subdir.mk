@@ -9,12 +9,6 @@ CPP_SRCS += \
 ../lib/stemmer.cpp \
 ../lib/tokenizador.cpp 
 
-O_SRCS += \
-../lib/indexadorHash.o \
-../lib/indexadorInformacion.o \
-../lib/stemmer.o \
-../lib/tokenizador.o 
-
 OBJS += \
 ./lib/indexadorHash.o \
 ./lib/indexadorInformacion.o \

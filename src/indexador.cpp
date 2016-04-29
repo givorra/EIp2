@@ -6,54 +6,47 @@
 
 using namespace std;
 
-///////////////////////////////////////////
-// Igual que el indexador04.cpp pero almacenando información en disco duro
-///////////////////////////////////////////
-
 int
 main(void)
 {
-IndexadorHash a("./StopWordsEspanyol.txt", ". ,:", false, false, "./indicePrueba", 0, true, true);
+IndexadorHash a("./StopWordsEspanyol.txt", ". ,:", false, false, "./indicePrueba", 0, false, true);
 
-a.Indexar("./listaFicheros_corto.txt");
+string preg1;
+InformacionPregunta infPreg1;
 
-InformacionTermino inf1;
-
-if(a.Devuelve("pal1", inf1))
-	cout << "pal1 SE HA INDEXADO: " << inf1 << endl;
+if(a.DevuelvePregunta(preg1))
+	cout << "ESTA INDEXADA LA PREGUNTA: " << preg1 << endl;
 else
-	cout << "pal1 NO SE HA INDEXADO" << endl;
+	cout << "NO HAY INDEXADA NINGUNA PREGUNTA" << endl;
 
-if(a.Devuelve("pal7", inf1))
-	cout << "pal7 SE HA INDEXADO: " << inf1 << endl;
+if(a.DevuelvePregunta(infPreg1))
+	cout << "ESTA INDEXADA LA PREGUNTA: " << infPreg1 << endl;
 else
-	cout << "pal7 NO SE HA INDEXADO" << endl;
+	cout << "NO HAY INDEXADA NINGUNA PREGUNTA" << endl;
 
-InfTermDoc infDoc1;
+a.IndexarPregunta("pal1 yo pal2 pal1. pal3 el  ");
 
-if(a.Devuelve("pal1", "corpus_corto/fichero1.txt", infDoc1))
-	cout << "pal1 SE HA INDEXADO EN corpus_corto/fichero1.txt: " << infDoc1 << endl;
+if(a.DevuelvePregunta(preg1))
+	cout << "ESTA INDEXADA LA PREGUNTA: " << preg1 << endl;
 else
-	cout << "pal1 NO SE HA INDEXADO EN corpus_corto/fichero1.txt" << endl;
+	cout << "NO HAY INDEXADA NINGUNA PREGUNTA" << endl;
 
-if(a.Devuelve("pal1", "fichero1.txt", infDoc1))
-	cout << "pal1 SE HA INDEXADO EN fichero1.txt: " << infDoc1 << endl;
-else
-	cout << "pal1 NO SE HA INDEXADO EN fichero1.txt" << endl;
+InformacionTerminoPregunta inf1;
 
-if(a.Devuelve("pal7", "corpus_corto/fichero1.txt", infDoc1))
-	cout << "pal7 SE HA INDEXADO EN corpus_corto/fichero1.txt: " << infDoc1 << endl;
+if(a.DevuelvePregunta("pal1", inf1))
+	cout << "pal1 SE HA INDEXADO EN LA PREGUNTA: " << inf1 << endl;
 else
-	cout << "pal7 NO SE HA INDEXADO EN corpus_corto/fichero1.txt" << endl;
+	cout << "pal1 NO SE HA INDEXADO EN LA PREGUNTA" << endl;
 
-if(a.Existe("pal1"))
-	cout << "pal1 SE HA INDEXADO" << endl;
+if(a.DevuelvePregunta("pal7", inf1))
+	cout << "pal7 SE HA INDEXADO EN LA PREGUNTA: " << inf1 << endl;
 else
-	cout << "pal1 NO SE HA INDEXADO" << endl;
+	cout << "pal7 NO SE HA INDEXADO EN LA PREGUNTA" << endl;
 
-if(a.Existe("pal7"))
-	cout << "pal7 SE HA INDEXADO" << endl;
+if(a.DevuelvePregunta(infPreg1))
+	cout << "ESTA INDEXADA LA PREGUNTA: " << infPreg1 << endl;
 else
-	cout << "pal7 NO SE HA INDEXADO" << endl;
+	cout << "NO HAY INDEXADA NINGUNA PREGUNTA" << endl;
+
 
 }
