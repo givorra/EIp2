@@ -21,7 +21,7 @@
 
 using namespace std;
 
-const string ficheroIndice = "indice";
+//const string ficheroIndice = "indice";
 
 class IndexadorHash
 {
@@ -110,7 +110,7 @@ class IndexadorHash
 		bool ListarDocs(const string& nomDoc) const;
 
 		stemmerPorter stemmer;
-
+		string ficheroIndice;
 	private:
 		string directorioIndice;
 		tr1::unordered_map<string, InformacionTermino> indice;
@@ -126,6 +126,8 @@ class IndexadorHash
 		int tipoStemmer;
 		bool almacenarEnDisco;
 		bool almacenarPosTerm;
+
+		void limpiarIndexador();
 
 	private:
 		IndexadorHash();

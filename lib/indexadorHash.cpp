@@ -77,6 +77,17 @@ IndexadorHash::~IndexadorHash()
 	almacenarPosTerm 	= false;
 }
 
+void IndexadorHash::limpiarIndexador()
+{
+	VaciarIndice();
+	pregunta			= "";
+	ficheroStopWords 	= "";
+	directorioIndice 	= "";
+	tipoStemmer 		= 0;
+	almacenarEnDisco 	= false;
+	almacenarPosTerm 	= false;
+}
+
 IndexadorHash& IndexadorHash::operator= (const IndexadorHash& ih)
 {
 	if(this != &ih)
@@ -122,12 +133,13 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 			posTerm = 0;
 
 			stat(nomDoc.c_str(), &statDocumento);
+			Fecha fechaDoc(gmtime(&(statDocumento.st_mtime)));
 
 			// COMPROBAMOS SI YA EXISTE EL DOCUMENTO
 			if(itIndiceDocs != indiceDocs.end())
 			{
 				cerr << "AVISO: Este fichero ha sido previamente indexado." << "\n";
-				Fecha fechaDoc(gmtime(&(statDocumento.st_mtime)));
+				//Fecha fechaDoc(gmtime(&(statDocumento.st_mtime)));
 
 				// Guardamos id del documento indexado anteriormente
 				if(itIndiceDocs->second.fechaModificacion < fechaDoc)
@@ -162,7 +174,8 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 						++informacionColeccionDocs.numDocs;
 						informacionDocumento.idDoc = informacionColeccionDocs.numDocs;
 					}
-					informacionDocumento.tamBytes = statDocumento.st_size;
+					informacionDocumento.tamBytes 			= statDocumento.st_size;
+					informacionDocumento.fechaModificacion 	= fechaDoc;
 
 
 					while(getline(documento, lineaDoc))
@@ -344,6 +357,13 @@ bool IndexadorHash::GuardarIndexacion() const
 			f << itIndiceDocs->second.numPalDiferentes << "\n";
 			f << itIndiceDocs->second.numPalSinParada << "\n";
 			f << itIndiceDocs->second.tamBytes << "\n";
+
+			f << itIndiceDocs->second.fechaModificacion.anyo << " ";
+			f << itIndiceDocs->second.fechaModificacion.mes << " ";
+			f << itIndiceDocs->second.fechaModificacion.dia << " ";
+			f << itIndiceDocs->second.fechaModificacion.hora << " ";
+			f << itIndiceDocs->second.fechaModificacion.min << " ";
+			f << itIndiceDocs->second.fechaModificacion.seg << "\n";
 		}
 		f << tok.CasosEspeciales() << "\n";
 		f << tok.PasarAminuscSinAcentos() << "\n";
@@ -376,7 +396,7 @@ bool IndexadorHash::RecuperarIndexacion(const string& directorioIndexacion)
 		// Leer stop words
 		getline(f, dato);
 		list<string> tokens;
-		tokAux.Tokenizador(dato, tokens);
+		tokAux.Tokenizar(dato, tokens);
 
 		for(auto itStopWords = tokens.begin(); itStopWords != tokens.end(); ++itStopWords)
 			stopWords.insert((*itStopWords));
@@ -440,49 +460,55 @@ bool IndexadorHash::RecuperarIndexacion(const string& directorioIndexacion)
 				tokAux.Tokenizar(dato, tokens);
 				for(auto itTokens = tokens.begin(); itTokens != tokens.end(); ++itTokens)
 				{
-
+					infTermDoc.posTerm.push_back(atoi((*itTokens).c_str()));
 				}
+				// Añade registro a infoTermino.ldocs
+				infoTermino.l_docs.insert({atoi(idDoc.c_str()), infTermDoc});
 			}
+			indice.insert({termino, infoTermino});
 		}
-		/*
-		 *
 
-		f << indice.size() << "\n";
-		// Escribimos indice --> coleccion de terminos
-		for(auto itIndice = indice.begin(); itIndice != indice.end(); ++itIndice)
+		getline(f, dato);
+		for(int i = atoi(dato.c_str()); i != 0; i--)
 		{
-			f << itIndice->first << "\n";
-			f << itIndice->second.ftc << "\n";
-			f << itIndice->second.l_docs.size() << "\n";
+			InfDoc infDoc;
+			string nombreFichero;
+			getline(f, nombreFichero);
 
-			// Escribimos ldocs --> InfTermDocs de cada termino
-			for(auto itLdocs = itIndice->second.l_docs.begin(); itLdocs != itIndice->second.l_docs.end(); ++itLdocs)
-			{
-				f << itLdocs->first << "\n";
-				f << itLdocs->second.ft << "\n";
-				for(auto itPosTerm = itLdocs->second.posTerm.begin(); itPosTerm != itLdocs->second.posTerm.end(); ++itPosTerm)
-					f << (*itPosTerm) << " ";
-				f << "\n";
-			}
-		}
+			getline(f, dato);
+			infDoc.idDoc = atoi(dato.c_str());
+			getline(f, dato);
+			infDoc.numPal = atoi(dato.c_str());
+			getline(f, dato);
+			infDoc.numPalDiferentes = atoi(dato.c_str());
+			getline(f, dato);
+			infDoc.numPalSinParada = atoi(dato.c_str());
+			getline(f, dato);
+			infDoc.tamBytes = atoi(dato.c_str());
 
-		f << indiceDocs.size() << "\n";
-		// Escribimos indiceDocs --> coleccion de documentos indexados
-		for(auto itIndiceDocs = indiceDocs.begin(); itIndiceDocs != indiceDocs.end(); ++itIndiceDocs)
-		{
-			f << itIndiceDocs->first << "\n";
-			f << itIndiceDocs->second.idDoc << "\n";
-			f << itIndiceDocs->second.numPal << "\n";
-			f << itIndiceDocs->second.numPalDiferentes << "\n";
-			f << itIndiceDocs->second.numPalSinParada << "\n";
-			f << itIndiceDocs->second.tamBytes << "\n";
+			f >> infDoc.fechaModificacion.anyo;
+			f >> infDoc.fechaModificacion.mes;
+			f >> infDoc.fechaModificacion.dia;
+			f >> infDoc.fechaModificacion.hora;
+			f >> infDoc.fechaModificacion.min;
+			f >> infDoc.fechaModificacion.seg;
 		}
-		f << tok.CasosEspeciales() << "\n";
-		f << tok.PasarAminuscSinAcentos() << "\n";
-		f << tok.DelimitadoresPalabra() << "\n";*/
+		getline(f, dato);
+		tok.CasosEspeciales(atoi(dato.c_str()));
+		getline(f, dato);
+		tok.PasarAminuscSinAcentos(atoi(dato.c_str()));
+		getline(f, dato);
+		tok.DelimitadoresPalabra(dato);
 
 		f.close();
+		ficheroIndice = "indice2";		// **************** BORRAAAAAAAAAAAAR
 	}
+	else
+	{
+		cerr << "ERROR: No se ha podido abrir el archivo para escritura" << "\n";
+		return false;
+	}
+	return true;
 }
 
 void IndexadorHash::ImprimirIndexacion() const

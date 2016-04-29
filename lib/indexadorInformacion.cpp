@@ -35,6 +35,19 @@ bool Fecha::operator<(const Fecha& f)const {
   (anyo==f.anyo && mes==f.mes && dia==f.dia && hora==f.hora && min<f.min) ||
   (anyo==f.anyo && mes==f.mes && dia==f.dia && hora==f.hora && min==f.min && seg<f.seg);
 }
+Fecha& Fecha::operator=(const Fecha& f)
+{
+	if(this != &f)
+	{
+		dia 	= f.dia;
+		mes 	= f.mes;
+		anyo 	= f.anyo;
+		hora 	= f.hora;
+		min 	= f.min;
+		seg 	= f.seg;
+	}
+	return (*this);
+}
 /************************************** InformacionPregunta *******************************************/
 
 InformacionPregunta::InformacionPregunta (const InformacionPregunta &ip):

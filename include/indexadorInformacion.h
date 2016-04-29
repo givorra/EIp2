@@ -26,6 +26,7 @@ public:
 	Fecha();
 	Fecha(struct tm *clock);
 	bool operator <(const Fecha& fecha)const;
+	Fecha& operator=(const Fecha&);
 };
 
 class InformacionPregunta
