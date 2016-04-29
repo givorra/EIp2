@@ -22,7 +22,7 @@ Tokenizador::Tokenizador(const string& delimitadoresPalabra, const bool& kcasosE
 {}
 
 Tokenizador::Tokenizador():
-	delimiters(",;:.-/+*\\ '\"{}[]()<>Â¡!Â¿?&#=\t\n\r@"),
+	delimiters(",;:.-/+*\\ '\"{}[]()<>¡!¿?&#=\t\n\r@"),
 	casosEspeciales(true),
 	pasarAminuscSinAcentos(false)
 	//status(NINGUNO)
@@ -226,7 +226,7 @@ string Tokenizador::getMinusSinAcentos(const string& token) const
 				auxToken += 'u';
 				break;
 			case 209:
-				auxToken += 'ï¿½';
+				auxToken += 'ñ';
 				break;
 			default:
 				if(token[i] >= 'A' && token[i] <= 'Z')
@@ -291,13 +291,13 @@ void Tokenizador::tokenizarConCasosEspeciales(const string& str, list<string>& t
 				break;
 			}
 
-			// Cuando se asigne un estado terminal, hacer tambiÃ©n las particularidades de ese estado
+			// Cuando se asigne un estado terminal, hacer también las particularidades de ese estado
 			case REAL:
 			{
 				npos = pos;
 				c = str[npos];
 				if(c == '.' || c == ',')
-					status = REAL1;	// AÃ‘ADIR 0
+					status = REAL1;	// AÑADIR 0
 				else if(c >= '0' && c <= '9')
 					status = REAL2;
 				else

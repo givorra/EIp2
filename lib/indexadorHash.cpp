@@ -178,7 +178,7 @@ bool IndexadorHash::Indexar(const string& ficheroDocumentos)
 
 							auto itStopWords = stopWords.find((*itTokens));
 
-							if(itStopWords == stopWords.end())	// No es una stop word
+							if(stopWords.find((*itTokens)) == stopWords.end())	// No es una stop word
 							{
 
 								++informacionDocumento.numPalSinParada;		// Incrementa palabras sin stop words
@@ -279,7 +279,7 @@ bool IndexadorHash::GuardarIndexacion() const
 
 }
 
-bool IndexadorHash::RecuperarIndexacion (const string& directorioIndexacion)
+bool IndexadorHash::RecuperarIndexacion(const string& directorioIndexacion)
 {
 
 }
@@ -294,7 +294,51 @@ void IndexadorHash::ImprimirIndexacion() const
 
 bool IndexadorHash::IndexarPregunta(const string& preg)
 {
+	int posTerm 						= 0;
+	indicePregunta.clear();
+	infPregunta.numTotalPal 			= 0;
+	infPregunta.numTotalPalDiferentes 	= 0;
+	infPregunta.numTotalPalSinParada 	= 0;
 
+	pregunta = preg;
+
+	list<string> tokensPregunta;
+	tok.Tokenizar(preg, tokensPregunta);
+
+	infPregunta.numTotalPal 			= tokensPregunta.size();
+
+	if(infPregunta.numTotalPal == 0)
+	{
+		cerr << "ERROR: pregunta con 0 terminos" << "\n";
+		return false;
+	}
+
+	for(auto itTokens = tokensPregunta.begin(); itTokens != tokensPregunta.end(); ++itTokens)
+	{
+		stemmer.stemmer((*itTokens), tipoStemmer);
+		auto itStopWords = stopWords.find((*itTokens));
+
+		if(itStopWords == stopWords.end())	// No es una stop word
+		{
+			auto itIndicePregunta = indicePregunta.find((*itTokens));
+
+			if(itIndicePregunta != indicePregunta.end())		// El termino ya esta indexado en la pregunta
+			{
+				++itIndicePregunta->second.ft;
+				itIndicePregunta->second.posTerm.push_back(posTerm);
+			}
+			else												// El termino no esta indexado en la pregunta
+			{
+				InformacionTerminoPregunta infoTerminoPreg;
+				infoTerminoPreg.ft = 1;
+				infoTerminoPreg.posTerm.push_back((posTerm));
+
+				++infPregunta.numTotalPalDiferentes;
+			}
+			++infPregunta.numTotalPalSinParada;
+		}
+		++posTerm;
+	}
 }
 
 bool IndexadorHash::DevuelvePregunta(string& preg) const

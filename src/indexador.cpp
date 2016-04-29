@@ -3,61 +3,38 @@
 #include <list> 
 #include "indexadorHash.h"
 #include "indexadorInformacion.h"
-
+#include <sys/resource.h>
 using namespace std;
 
-int
-main(void)
-{
-IndexadorHash b("./StopWordsEspanyol.txt", ". ,:", false, false, "./indicePrueba", 0, false, true);
+///////////////////////////////////////////
+// Igual que el indexador04.cpp pero almacenando información en disco duro
+///////////////////////////////////////////
 
-b.Indexar("./listaFicheros_corto.txt");
-b.GuardarIndexacion();
 
-IndexadorHash a("./indicePrueba");
 
-cout << a.DevolverDelimitadores () << endl;
-cout << a.DevolverDirIndice () << endl;
-cout << a.DevolverTipoStemming () << endl;
-cout << a.DevolverAlmEnDisco () << endl;
+double getcputime(void) {
+    struct timeval tim;
+    struct rusage ru;
 
-InformacionTermino inf1;
+    getrusage(RUSAGE_SELF, &ru);
 
-if(a.Devuelve("pal1", inf1))
-	cout << "pal1 SE HA INDEXADO: " << inf1 << endl;
-else
-	cout << "pal1 NO SE HA INDEXADO" << endl;
+    tim=ru.ru_utime;
+    double t=(double)tim.tv_sec + (double)tim.tv_usec / 1000000.0;
+    tim=ru.ru_stime;
+    t+=(double)tim.tv_sec + (double)tim.tv_usec / 1000000.0;
+    return t;
+}
 
-if(a.Devuelve("pal7", inf1))
-	cout << "pal7 SE HA INDEXADO: " << inf1 << endl;
-else
-	cout << "pal7 NO SE HA INDEXADO" << endl;
+//main
+int main() {
 
-InfTermDoc infDoc1;
+    long double aa=getcputime();
 
-if(a.Devuelve("pal1", "corpus_corto/fichero1.txt", infDoc1))
-	cout << "pal1 SE HA INDEXADO EN corpus_corto/fichero1.txt: " << infDoc1 << endl;
-else
-	cout << "pal1 NO SE HA INDEXADO EN corpus_corto/fichero1.txt" << endl;
+    IndexadorHash a("./StopWordsEspanyol.txt", ". ,:", false, false, "./indicePrueba", 1, false, true);
 
-if(a.Devuelve("pal1", "fichero1.txt", infDoc1))
-	cout << "pal1 SE HA INDEXADO EN fichero1.txt: " << infDoc1 << endl;
-else
-	cout << "pal1 NO SE HA INDEXADO EN fichero1.txt" << endl;
+    a.IndexarDirectorio("corpus");
+    cout << a <<"\n";
 
-if(a.Devuelve("pal7", "corpus_corto/fichero1.txt", infDoc1))
-	cout << "pal7 SE HA INDEXADO EN corpus_corto/fichero1.txt: " << infDoc1 << endl;
-else
-	cout << "pal7 NO SE HA INDEXADO EN corpus_corto/fichero1.txt" << endl;
-
-if(a.Existe("pal1"))
-	cout << "pal1 SE HA INDEXADO" << endl;
-else
-	cout << "pal1 NO SE HA INDEXADO" << endl;
-
-if(a.Existe("pal7"))
-	cout << "pal7 SE HA INDEXADO" << endl;
-else
-	cout << "pal7 NO SE HA INDEXADO" << endl;
+    cout << "Ha tardado " << getcputime() - aa << " segundos" << endl;
 
 }
