@@ -81,14 +81,15 @@ InformacionPregunta& InformacionPregunta::operator=(const InformacionPregunta &i
 
 ostream& operator<<(ostream& s, const InformacionPregunta& p)
 {
-	s << "numTotalPal: " << p.numTotalPal << "\tnumTotalPalSinParada: "<< "\tnumTotalPalDiferentes: " << p.numTotalPalDiferentes;
+	s << "numTotalPal: " << p.numTotalPal << "\tnumTotalPalSinParada: " << p.numTotalPalSinParada << "\tnumTotalPalDiferentes: " << p.numTotalPalDiferentes;
 	return s;
 }
 
 /********************************* InformacionTerminoPregunta ****************************************/
 
 InformacionTerminoPregunta::InformacionTerminoPregunta (const InformacionTerminoPregunta &itp):
-ft(itp.ft)
+ft(itp.ft),
+posTerm(itp.posTerm)
 {}
 
 InformacionTerminoPregunta::InformacionTerminoPregunta ():
@@ -105,23 +106,17 @@ InformacionTerminoPregunta& InformacionTerminoPregunta::operator=(const Informac
 	if(this != &itp)
 	{
 		this->ft 		= itp.ft;
-		this->posTerm = itp.posTerm;
+		this->posTerm 	= itp.posTerm;
 	}
 	return (*this);
 }
 
 ostream& operator<<(ostream& s, const InformacionTerminoPregunta& p) {
 	s << "ft: " << p.ft;
-	// A continuación se mostrarían todos los elementos de p.posTerm (“posicion TAB posicion TAB ... posicion,
-	// es decir nunca finalizará en un TAB”): s << “\t“ << posicion;
-	for (auto itPosTerm = p.posTerm.begin(); itPosTerm != p.posTerm.end();++itPosTerm)
+	for (auto itPosTerm = p.posTerm.begin(); itPosTerm != p.posTerm.end(); ++itPosTerm)
 	{
-		if (itPosTerm == p.posTerm.begin())
-			s << (*itPosTerm);
-		else
-			s << "\t" << *itPosTerm;
+		s << "\t" << (*itPosTerm);
 	}
-	return s;
 	return s;
 }
 

@@ -9,6 +9,12 @@ CPP_SRCS += \
 ../lib/stemmer.cpp \
 ../lib/tokenizador.cpp 
 
+O_SRCS += \
+../lib/indexadorHash.o \
+../lib/indexadorInformacion.o \
+../lib/stemmer.o \
+../lib/tokenizador.o 
+
 OBJS += \
 ./lib/indexadorHash.o \
 ./lib/indexadorInformacion.o \
@@ -26,7 +32,7 @@ CPP_DEPS += \
 lib/%.o: ../lib/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: Cross G++ Compiler'
-	g++ -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	g++ -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

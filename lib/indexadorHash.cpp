@@ -475,8 +475,8 @@ bool IndexadorHash::RecuperarIndexacion(const string& directorioIndexacion)
 		for(int i = atoi(dato.c_str()); i != 0; i--)
 		{
 			InfDoc infDoc;
-			string nombreFichero;
-			getline(f, nombreFichero);
+			string nomDoc;
+			getline(f, nomDoc);
 
 			getline(f, dato);
 			infDoc.idDoc = atoi(dato.c_str());
@@ -505,6 +505,7 @@ bool IndexadorHash::RecuperarIndexacion(const string& directorioIndexacion)
 			++itTokens;
 			infDoc.fechaModificacion.seg 	= atoi((*itTokens).c_str());
 			++itTokens;
+			indiceDocs.insert({nomDoc, infDoc});
 		}
 		getline(f, dato);
 		tok.CasosEspeciales(atoi(dato.c_str()));
@@ -571,9 +572,11 @@ bool IndexadorHash::IndexarPregunta(const string& preg)
 			{
 				InformacionTerminoPregunta infoTerminoPreg;
 				infoTerminoPreg.ft = 1;
-				infoTerminoPreg.posTerm.push_back((posTerm));
+				infoTerminoPreg.posTerm.push_back(posTerm);
 
 				indicePregunta.insert({(*itTokens), infoTerminoPreg});
+
+
 				++infPregunta.numTotalPalDiferentes;
 			}
 			++infPregunta.numTotalPalSinParada;

@@ -3,50 +3,38 @@
 #include <list> 
 #include "indexadorHash.h"
 #include "indexadorInformacion.h"
-
+#include <sys/resource.h>
 using namespace std;
 
-int
-main(void)
-{
-IndexadorHash a("./StopWordsEspanyol.txt", ". ,:", false, false, "./indicePrueba", 0, false, true);
+///////////////////////////////////////////
+// Igual que el indexador04.cpp pero almacenando información en disco duro
+///////////////////////////////////////////
 
-string preg1;
-InformacionPregunta infPreg1;
 
-if(a.DevuelvePregunta(preg1))
-	cout << "ESTA INDEXADA LA PREGUNTA: " << preg1 << endl;
-else
-	cout << "NO HAY INDEXADA NINGUNA PREGUNTA" << endl;
 
-if(a.DevuelvePregunta(infPreg1))
-	cout << "ESTA INDEXADA LA PREGUNTA: " << infPreg1 << endl;
-else
-	cout << "NO HAY INDEXADA NINGUNA PREGUNTA" << endl;
+double getcputime(void) {
+    struct timeval tim;
+    struct rusage ru;
 
-a.IndexarPregunta("pal1 yo pal2 pal1. pal3 el  ");
+    getrusage(RUSAGE_SELF, &ru);
 
-if(a.DevuelvePregunta(preg1))
-	cout << "ESTA INDEXADA LA PREGUNTA: " << preg1 << endl;
-else
-	cout << "NO HAY INDEXADA NINGUNA PREGUNTA" << endl;
+    tim=ru.ru_utime;
+    double t=(double)tim.tv_sec + (double)tim.tv_usec / 1000000.0;
+    tim=ru.ru_stime;
+    t+=(double)tim.tv_sec + (double)tim.tv_usec / 1000000.0;
+    return t;
+}
 
-InformacionTerminoPregunta inf1;
+//main
+int main() {
 
-if(a.DevuelvePregunta("pal1", inf1))
-	cout << "pal1 SE HA INDEXADO EN LA PREGUNTA: " << inf1 << endl;
-else
-	cout << "pal1 NO SE HA INDEXADO EN LA PREGUNTA" << endl;
+    long double aa=getcputime();
 
-if(a.DevuelvePregunta("pal7", inf1))
-	cout << "pal7 SE HA INDEXADO EN LA PREGUNTA: " << inf1 << endl;
-else
-	cout << "pal7 NO SE HA INDEXADO EN LA PREGUNTA" << endl;
+    IndexadorHash a("./StopWordsEspanyol.txt", ". ,:", false, false, "./indicePrueba", 1, false, true);
 
-if(a.DevuelvePregunta(infPreg1))
-	cout << "ESTA INDEXADA LA PREGUNTA: " << infPreg1 << endl;
-else
-	cout << "NO HAY INDEXADA NINGUNA PREGUNTA" << endl;
+    a.IndexarDirectorio("corpus");
+    cout << a <<"\n";
 
+    cout << "Ha tardado " << getcputime() - aa << " segundos" << endl;
 
 }
